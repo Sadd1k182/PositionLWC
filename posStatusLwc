@@ -1,0 +1,46 @@
+<template>
+    <div class="slds-box slds-theme_default">
+        <div class="slds-text-color_inverse slds-text-heading_large" style="padding:0.5rem;background:#16325c">
+            Positions
+        </div>
+        <div style="width:200px; padding:0.5rem;">
+            <lightning-combobox name="filter"
+                                label="Status"
+                                value={selectedFilter}
+                                variant="label-hidden"
+                                options={options}
+                                onchange={handleChange}
+                                placeholder="Select Status to filter"></lightning-combobox>
+        </div>
+        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+            <thead>
+            <tr class="slds-line-height_reset">
+                <th class="" scope="col">Position Name</th>
+                <th class="" scope="col">Status</th>
+                <th class="" scope="col">Opening Date</th>
+                <th class="" scope="col">Closing Date</th>
+                <th class="" scope="col">Minimum Salary</th>
+                <th class="" scope="col">Maximum Salary</th>
+            </tr>
+            </thead>
+            <tbody>
+            <template for:each={positions} for:item="pos" for:index="index">
+                <tr key={pos.Id}>
+                    <td>{pos.Name}</td>
+                    <td>
+                        <template if:true={statusPicklist.data}>
+                            <lightning-combobox label="" value={pos.Status__c}
+                                                options={statusPicklist.data.values} onchange={handleChangeStatus} for:index={index}>
+                            </lightning-combobox>
+                        </template></td>
+                    <td>{pos.Opening_date__c}</td>
+                    <td>{pos.Closing_date__c}</td>
+                    <td>{pos.Salary_max__c}</td>
+                    <td>{pos.Salary_min__c}</td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+
+</template>
