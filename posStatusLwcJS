@@ -1,0 +1,84 @@
+import { LightningElement, wire,track,api } from 'lwc';
+import getPositions from '@salesforce/apex/positionStatusLwcController.getPositions';
+import getStatusOptions from '@salesforce/apex/positionStatusLwcController.getStatusOptions';
+//import filterByStatus from '@salesforce/apex/positionStatusLwcController.filterByStatus';
+import POSITION_OBJECT from '@salesforce/schema/Position__c';
+import STATUS_FIELD from '@salesforce/schema/Position__c.Status__c';
+import {getPicklistValues,getObjectInfo} from "lightning/uiObjectInfoApi";
+
+export default class PersonList extends LightningElement {
+    positions;
+    selectedFilter = 'All';
+
+    ///////////////////////
+    //Status filter func//
+    /////////////////////
+    @track options = [];
+
+    connectedCallback() {
+        this.getOptions();
+    }
+
+    getOptions() {
+        getStatusOptions()
+            .then((data) => {
+                if (data) {
+                    this.options = data;
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+
+    handleChange( event ) {
+        this.selectedFilter = event.detail.value;
+        if ( this.selectedFilter === 'All' )
+            this.positions = this.initialPositions;
+        else
+            this.filter();
+    }
+
+    @wire( getPositions )
+    wiredPosition( { error, data } ) {
+        if (data) {
+            this.positions = data;
+            this.initialPositions = data;
+            this.error = undefined;
+        } else if ( error ) {
+            console.log('Error is ' + JSON.stringify(error));
+            this.initialPositions = undefined;
+            this.positions = undefined;
+        }
+    }
+
+    filter() {
+        if ( this.selectedFilter ) {
+            this.positions = this.initialPositions;
+            if ( this.positions ) {
+                let poss = [];
+                for ( let pos of this.positions ) {
+                    if ( pos.Status__c === this.selectedFilter ) {
+                        poss.push( pos );
+                    }
+                }
+                this.positions = poss;
+            }
+        }  else {
+            this.positions = this.initialPositions;
+        }
+    }
+
+    ///////////////////////////////////////////////////
+    //Change status on field status for each position//
+    ///////////////////////////////////////////////////
+    @wire(getObjectInfo, { objectApiName: POSITION_OBJECT })
+    accountMetadata;
+    @wire(getPicklistValues, {fieldApiName: STATUS_FIELD, recordTypeId: '$accountMetadata.data.defaultRecordTypeId'})
+    statusPicklist;
+
+    handleChangeStatus(event) {
+        this.value = event.detail.value;
+    }
+
+}
