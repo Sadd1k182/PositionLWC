@@ -1,0 +1,37 @@
+public with sharing class positionStatusLwcController {
+
+    @AuraEnabled(Cacheable=true)
+    public static List <Position__c> getPositions() {
+        return [ SELECT Id,Name,Status__c,Opening_date__c,Closing_date__c,Salary_min__c,Salary_max__c
+        FROM Position__c
+        LIMIT 10 ];
+    }
+
+    //Method to apply Status filter logic
+    /*@AuraEnabled
+    public static List<Position__c> filterByStatus(String status){
+        if (status == 'All') {
+            return [SELECT Name,Status__c,Opening_date__c,Closing_date__c,Salary_max__c,Salary_min__c FROM Position__c WHERE Status__c != NULL];
+        } else{
+            return [SELECT Name,Status__c,Opening_date__c,Closing_date__c,Salary_max__c,Salary_min__c FROM Position__c WHERE Status__c = :status];
+        }
+    }
+*/
+   @AuraEnabled
+    public static List<Map<String, String>> getStatusOptions() {
+        List<Map<String, String>> pickListValues = new List<Map<String, String>>{
+                new Map<String, String>{
+                        'label' => 'All',
+                        'value' => 'All'}
+        };
+        for( Schema.PicklistEntry pickListValue :   Position__c.Status__c.getDescribe().getPicklistValues()){
+            pickListValues.add(new Map<String, String>{
+                    'label' => pickListValue.getLabel(),
+                    'value' => pickListValue.getLabel()
+            }
+            );
+        }
+        return pickListValues;
+    }
+
+}
